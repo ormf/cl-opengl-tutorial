@@ -56,6 +56,12 @@
   ;; (gl:hint :perspective-correction-hint :nicest)
   )
 
+(defmethod glut:display-window :after ((w tutorial-window))
+  "setup function before window creation"
+  (format t "~&setting cursor...~%")
+  (init-fns w))
+
+
 (defun draw ()
   (gl:clear :color-buffer-bit)
   (gl:flush))
