@@ -46,7 +46,6 @@
 
 (defmethod glut:display-window :before ((w tutorial-window))
   "setup function before window creation"
-  (format t "~&setting cursor...~%")
 ;;  (glut:set-cursor :cursor-none)
   ;; (gl:clear-depth 1)
   ;; (gl:shade-model :smooth)
@@ -54,7 +53,9 @@
   ;; (gl:enable :depth-test :multisample)
   ;; (gl:depth-func :lequal)
   ;; (gl:hint :perspective-correction-hint :nicest)
-  )
+  (gl:ortho 0 (glut:width w) 0 (glut:height w) -1 1)
+  (gl:viewport 0 0 (glut:width w) (glut:height w)
+  ))
 
 (defmethod glut:display-window :after ((w tutorial-window))
   "setup function before window creation"

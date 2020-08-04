@@ -187,3 +187,86 @@
 (gl:enable-client-state :vertex-array)
 (%gl:draw-arrays :quads 0 (* vertices-per-sprite
                              (floor (length (positions o)) 2)))
+
+
+(defun matrix-mul (matrix vector dest)
+  "Multiply MATRIX by VECTOR putting the result into DEST.
+Optimized for DOUBLE-FLOAT vectors and matrices"
+  (declare (type (simple-array double-float (* *)) matrix)
+           (type (simple-array double-float *) vector dest)
+           (optimize (speed 3) (debug 0) (safety 0)))
+  (destructuring-bind (rows cols) (array-dimensions matrix)
+    (declare (fixnum rows cols))
+    (dotimes (i rows)
+      (let ((sum 0.0d0))
+        (declare (double-float sum))
+        (setf (aref dest i)
+              (progn
+                (dotimes (j cols)
+                  (incf sum (* (aref matrix i j) (aref vector j))))
+                sum))))))
+
+(defun matrix-mul (matrix vector dest)
+  "Multiply MATRIX by VECTOR putting the result into DEST.
+Optimized for SINGLE-FLOAT vectors and matrices"
+  (declare (type (simple-array single-float (* *)) matrix)
+           (type (simple-array single-float *) vector dest)
+           (optimize (speed 3) (debug 0) (safety 0)))
+  (destructuring-bind (rows cols) (array-dimensions matrix)
+    (declare (fixnum rows cols))
+    (dotimes (i rows)
+      (let ((sum 0.0))
+        (declare (single-float sum))
+        (setf (aref dest i)
+              (progn
+                (dotimes (j cols)
+                  (incf sum (* (aref matrix i j) (aref vector j))))
+                sum))))))
+
+
+With current sbcl (2.0.1) there are still optimization warnings with the code above. change to:
+
+double-float:
+
+```
+(defun matrix-mul (matrix vector dest)
+  "Multiply MATRIX by VECTOR putting the result into DEST.
+Optimized for DOUBLE-FLOAT vectors and matrices"
+  (declare (type (simple-array double-float (* *)) matrix)
+           (type (simple-array double-float *) vector dest)
+           (optimize (speed 3) (debug 0) (safety 0)))
+  (destructuring-bind (rows cols) (array-dimensions matrix)
+    (declare (fixnum rows cols))
+    (dotimes (i rows)
+      (let ((sum 0.0d0))
+        (declare (double-float sum))
+        (setf (aref dest i)
+              (progn
+                (dotimes (j cols)
+                  (incf sum (* (aref matrix i j) (aref vector j))))
+                sum)))))
+  dest)
+
+```
+
+single-float:
+
+```
+(defun matrix-mul (matrix vector dest)
+  "Multiply MATRIX by VECTOR putting the result into DEST.
+Optimized for SINGLE-FLOAT vectors and matrices"
+  (declare (type (simple-array single-float (* *)) matrix)
+           (type (simple-array single-float *) vector dest)
+           (optimize (speed 3) (debug 0) (safety 0)))
+  (destructuring-bind (rows cols) (array-dimensions matrix)
+    (declare (fixnum rows cols))
+    (dotimes (i rows)
+      (let ((sum 0.0))
+        (declare (single-float sum))
+        (setf (aref dest i)
+              (progn
+                (dotimes (j cols)
+                  (incf sum (* (aref matrix i j) (aref vector j))))
+                sum)))))
+  dest)
+```
